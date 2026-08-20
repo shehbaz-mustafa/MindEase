@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f5f0;
+  --foreground: #1f2937;
+
+  --color-primary: #2d5a73;
+  --color-primary-dark: #204254;
+  --color-primary-light: #e7eef1;
+
+  --color-sage: #7fa582;
+  --color-sage-dark: #4c7a52;
+  --color-sage-light: #e8f0e3;
+
+  --color-cream: #f7f5f0;
+  --color-cream-deep: #f0ece3;
+
+  --color-danger-bg: #feecec;
+  --color-danger-text: #b91c1c;
+  --color-danger-accent: #dc2626;
+
+  --color-ink: #1f2937;
+  --color-muted: #6b7280;
+  --color-border: #e7e4dc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
+
+  --color-sage: var(--color-sage);
+  --color-sage-dark: var(--color-sage-dark);
+  --color-sage-light: var(--color-sage-light);
+
+  --color-cream: var(--color-cream);
+  --color-cream-deep: var(--color-cream-deep);
+
+  --color-danger-bg: var(--color-danger-bg);
+  --color-danger-text: var(--color-danger-text);
+  --color-danger-accent: var(--color-danger-accent);
+
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-muted);
+  --color-border: var(--color-border);
+
+  --font-display: var(--font-baloo), "Baloo 2", ui-rounded, sans-serif;
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
