@@ -64,18 +64,18 @@ export default async function DashboardPage() {
           </span>
           <div>
             <h2 className="font-display text-xl font-semibold text-ink">
-              Take your first check-in
+              Take a psychological assessment
             </h2>
             <p className="mt-1 max-w-md text-sm text-slate-600">
-              A quick, private well-being check-in helps MindEase understand how you&apos;re doing
-              and offer recommendations that actually fit you.
+              Explore your emotions, stress management, and well-being through our carefully designed assessments. 
+              Each takes just a few minutes and provides personalized insights.
             </p>
           </div>
           <Link
-            href="/assessment"
+            href="/assessments"
             className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
           >
-            Start check-in →
+            Explore assessments →
           </Link>
         </div>
       ) : (
@@ -101,10 +101,10 @@ export default async function DashboardPage() {
                 View full results
               </Link>
               <Link
-                href="/assessment"
+                href="/assessments"
                 className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
               >
-                New check-in
+                New assessment
               </Link>
             </div>
           </div>

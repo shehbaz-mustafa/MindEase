@@ -1,22 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAssessmentById, scoreAssessment, type Responses } from "@/lib/assessments";
 import { DonutStat } from "@/components/ui/DonutStat";
 import { Badge } from "@/components/ui/Badge";
-import { CATEGORY_LABELS, categoryStatusLabel, describeOverallScore, type Category } from "@/lib/assessment/scoring";
-import { getRecommendations } from "@/lib/assessment/recommendations";
+import { Button } from "@/components/ui/Button";
 
-const CATEGORY_TONE: Record<string, "sage" | "primary" | "danger"> = {
-  thriving: "sage",
-  steady: "primary",
-  needs_support: "danger",
-};
-
-const CATEGORY_RING_COLOR: Record<string, "primary" | "sage" | "muted"> = {
-  thriving: "sage",
-  steady: "primary",
-  needs_support: "muted",
-};
+interface AssessmentRecord {
+  id: string;
+  assessment_type: string;
+  assessment_name: string;
+  overall_score: number;
+  dimension_scores: Record<string, number>;
+  responses: Record<string, number>;
+  created_at: string;
+}
 
 export default async function ResultsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,118 +23,132 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: assessment } = await supabase
+  const { data: record } = await supabase
     .from("assessments")
-    .select("id, score, category, breakdown, completed_at")
+    .select("*")
     .eq("id", id)
     .eq("user_id", user?.id)
     .single();
 
-  if (!assessment) {
+  if (!record) {
     notFound();
   }
 
-  const { headline, summary } = describeOverallScore(assessment.score);
-  const breakdownEntries = Object.entries(assessment.breakdown as Record<string, number>) as [
-    Category,
-    number
-  ][];
-  const recommendations = getRecommendations(
-    breakdownEntries.map(([category, score]) => ({ category, score }))
-  );
-  const needsSupport = assessment.category === "needs_support";
+  const assessment = record as AssessmentRecord;
+  const assessmentDefinition = getAssessmentById(assessment.assessment_type);
+
+  if (!assessmentDefinition) {
+    notFound();
+  }
+
+  // Recalculate results to get full report
+  const result = scoreAssessment(assessmentDefinition, assessment.responses as Responses);
+
+  // Format date
+  const date = new Date(assessment.created_at).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <Badge tone={CATEGORY_TONE[assessment.category] ?? "sage"}>
-        {new Date(assessment.completed_at).toLocaleDateString(undefined, {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })}
-      </Badge>
+    <div className="mx-auto max-w-4xl">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink"
+      >
+        ← Back to Dashboard
+      </Link>
 
-      <h1 className="mt-3 font-display text-3xl font-semibold text-ink">
-        Your Well-being Snapshot
-      </h1>
-      <p className="mt-2 max-w-xl text-slate-600">
-        Here are the results from your latest check-in. Taking time to check in with yourself is
-        a wonderful step.
-      </p>
-
-      <div className="mt-8 rounded-3xl border border-border bg-gradient-to-br from-sage-light to-white p-6 sm:p-8">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🌿</span>
-          <h2 className="font-display text-xl font-semibold text-ink">{headline}</h2>
-        </div>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-700">{summary}</p>
+      {/* Header */}
+      <div className="mt-8">
+        <h1 className="font-display text-4xl font-semibold text-ink">Your Results</h1>
+        <p className="mt-2 text-muted">{assessment.assessment_name}</p>
+        <p className="text-sm text-muted">{date}</p>
       </div>
 
-      <h2 className="mt-10 font-display text-xl font-semibold text-ink">Detailed insights</h2>
-      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {breakdownEntries.map(([category, score]) => (
-          <DonutStat
-            key={category}
-            label={CATEGORY_LABELS[category]}
-            sublabel={categoryStatusLabel(score)}
-            percent={score}
-            color={CATEGORY_RING_COLOR[assessment.category]}
-          />
-        ))}
-      </div>
-
-      {recommendations.length > 0 && (
-        <>
-          <h2 className="mt-10 font-display text-xl font-semibold text-ink">
-            Suggested next steps
-          </h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {recommendations.map((rec) => (
-              <Link
-                key={rec.title}
-                href={rec.href}
-                className="flex flex-col gap-2 rounded-2xl border border-border bg-white p-5 shadow-sm hover:border-primary/40"
-              >
-                <h3 className="font-display text-sm font-semibold text-ink">{rec.title}</h3>
-                <p className="text-sm text-slate-600">{rec.description}</p>
-              </Link>
-            ))}
+      {/* Overall Score */}
+      <div className="mt-8 rounded-3xl border border-border bg-white p-8 shadow-sm">
+        <div className="flex flex-col items-center text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="w-32">
+              <DonutStat 
+                label="Overall Score"
+                sublabel="Assessment"
+                percent={result.overallScore}
+                displayValue={`${result.overallScore}%`}
+              />
+            </div>
           </div>
-        </>
-      )}
-
-      {needsSupport && (
-        <div className="mt-10 rounded-2xl border border-danger-accent/30 bg-danger-bg p-6">
-          <h3 className="font-display text-sm font-semibold text-danger-text">
-            Consider speaking with a professional
-          </h3>
-          <p className="mt-2 text-sm text-danger-text">
-            What you&apos;re carrying sounds like a lot right now. MindEase isn&apos;t a
-            replacement for professional support — a counsellor can offer guidance suited to
-            your situation.
-          </p>
-          <Link
-            href="/support"
-            className="mt-3 inline-block text-sm font-semibold text-danger-text underline"
-          >
-            Find support →
-          </Link>
+          <p className="mt-4 max-w-2xl text-lg text-muted">{result.summary}</p>
         </div>
-      )}
+      </div>
 
-      <div className="mt-10 flex flex-wrap gap-3 border-t border-border pt-8">
-        <Link
-          href="/dashboard"
-          className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
-        >
-          View dashboard →
+      {/* Dimension Scores */}
+      <div className="mt-8">
+        <h2 className="mb-4 font-display text-2xl font-semibold text-ink">Dimension Breakdown</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {result.dimensionResults.map((dimension) => (
+            <div
+              key={dimension.dimensionId}
+              className="rounded-2xl border border-border bg-white p-6"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold text-ink">{dimension.dimensionName}</h3>
+                  <Badge tone={dimension.level === "Very Low" ? "primary" : dimension.level === "Very High" ? "sage" : "primary"}>
+                    {dimension.level}
+                  </Badge>
+                </div>
+                <div className="text-right">
+                  <div className="font-display text-3xl font-semibold text-ink">
+                    {dimension.score}%
+                  </div>
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-muted">{dimension.interpretation}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recommendations */}
+      <div className="mt-8 rounded-3xl border border-border bg-blue-50 p-8">
+        <h2 className="mb-4 font-display text-2xl font-semibold text-ink">
+          Recommendations for You
+        </h2>
+        <div className="space-y-3">
+          {result.recommendations.map((rec, idx) => (
+            <div key={idx} className="flex gap-3">
+              <div className="mt-1 flex-shrink-0 rounded-full bg-blue-300 w-1.5 h-1.5" />
+              <p className="text-muted">{rec}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <Link href="/assessments" className="flex-1">
+          <Button variant="secondary" className="w-full">
+            Take Another Assessment
+          </Button>
         </Link>
-        <Link
-          href="/history"
-          className="rounded-full border border-primary/30 px-6 py-2.5 text-sm font-medium text-primary hover:bg-primary-light"
-        >
-          View history
+        <Link href="/dashboard" className="flex-1">
+          <Button className="w-full">View Dashboard</Button>
         </Link>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="mt-8 rounded-2xl bg-gray-50 p-6 text-sm text-muted">
+        <p className="font-semibold text-ink">Important Note</p>
+        <p className="mt-2">
+          These assessments are designed for self-awareness and personal reflection. They are not
+          clinical diagnostic tools and should not be used to diagnose mental health conditions.
+          If you're experiencing significant distress or struggling with your mental health, please
+          reach out to a qualified mental health professional or counselor.
+        </p>
       </div>
     </div>
   );
