@@ -33,21 +33,23 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: do not run code between createServerClient and getUser().
-  // A simple mistake here can cause hard-to-debug session refresh issues.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  const path = request.nextUrl.pathname;
-  const isProtected = PROTECTED_PREFIXES.some(
-    (prefix) => path === prefix || path.startsWith(`${prefix}/`)
-  );
+    const path = request.nextUrl.pathname;
+    const isProtected = PROTECTED_PREFIXES.some(
+      (prefix) => path === prefix || path.startsWith(`${prefix}/`)
+    );
 
-  if (isProtected && !user) {
-    const redirectUrl = new URL("/login", request.url);
-    redirectUrl.searchParams.set("redirectTo", path);
-    return NextResponse.redirect(redirectUrl);
+    if (isProtected && !user) {
+      const redirectUrl = new URL("/login", request.url);
+      redirectUrl.searchParams.set("redirectTo", path);
+      return NextResponse.redirect(redirectUrl);
+    }
+  } catch (error) {
+    console.error("Supabase middleware session error:", error);
   }
 
   return supabaseResponse;

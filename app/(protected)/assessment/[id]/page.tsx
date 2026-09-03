@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { use, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ASSESSMENTS, getAssessmentById, LIKERT_LABELS, type Responses, type LikertValue } from "@/lib/assessments";
+import { getAssessmentById, LIKERT_LABELS, type Responses, type LikertValue } from "@/lib/assessments";
 import { RadioCard } from "@/components/ui/RadioCard";
 import { ProgressSteps } from "@/components/ui/ProgressSteps";
 import { Button } from "@/components/ui/Button";
@@ -15,8 +15,13 @@ interface AssessmentPageProps {
 }
 
 export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
-  const { id: assessmentId } = React.use(params);
+  const { id: assessmentId } = use(params);
   const router = useRouter();
+
+  const [step, setStep] = useState(0);
+  const [responses, setResponses] = useState<Responses>({});
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string>();
 
   const assessment = getAssessmentById(assessmentId);
 
@@ -31,11 +36,6 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
     );
   }
 
-  const [step, setStep] = useState(0);
-  const [responses, setResponses] = useState<Responses>({});
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string>();
-
   const question = assessment.questions[step];
   const isLast = step === assessment.questions.length - 1;
   const selectedValue = responses[question.id];
@@ -46,10 +46,16 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
 
   function goNext() {
     if (!assessment) return;
+
+    const currentResponses =
+      selectedValue !== undefined
+        ? { ...responses, [question.id]: selectedValue }
+        : responses;
     
     if (isLast) {
+      setError(undefined);
       startTransition(async () => {
-        const result = await submitAssessmentAction(assessmentId, assessment, responses);
+        const result = await submitAssessmentAction(assessmentId, assessment, currentResponses);
         if (result.error || !result.id) {
           setError(result.error ?? "Something went wrong. Please try again.");
           return;
@@ -62,15 +68,30 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
   }
 
   function skip() {
-    setResponses((r) => {
-      const next = { ...r };
-      delete next[question.id];
-      return next;
-    });
+    if (!assessment) return;
+
+    const next = { ...responses };
+    delete next[question.id];
+    setResponses(next);
+
     if (isLast) {
-      goNext();
+      setError(undefined);
+      startTransition(async () => {
+        const result = await submitAssessmentAction(assessmentId, assessment, next);
+        if (result.error || !result.id) {
+          setError(result.error ?? "Something went wrong. Please try again.");
+          return;
+        }
+        router.push(`/results/${result.id}`);
+      });
     } else {
       setStep((s) => s + 1);
+    }
+  }
+
+  function goBack() {
+    if (step > 0) {
+      setStep((s) => s - 1);
     }
   }
 
@@ -78,23 +99,35 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
   const currentDimension = assessment.dimensions.find((d) => d.id === question.dimensionId);
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <Link
-        href="/assessments"
-        className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink"
-      >
-        ← Back to Assessments
-      </Link>
+    <div className="mx-auto max-w-2xl px-4 py-2 sm:px-6 sm:py-6">
+      <div className="flex items-center justify-between">
+        <Link
+          href="/assessments"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-muted hover:text-ink transition-colors"
+        >
+          ← Back to Assessments
+        </Link>
+        {step > 0 && (
+          <button
+            type="button"
+            onClick={goBack}
+            className="text-xs sm:text-sm text-muted hover:text-ink transition-colors"
+            disabled={isPending}
+          >
+            ← Previous Question
+          </button>
+        )}
+      </div>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-semibold text-ink">{assessment.name}</h1>
+          <h1 className="font-display text-2xl font-semibold text-ink sm:text-3xl">{assessment.name}</h1>
           {currentDimension && (
-            <p className="mt-1 text-sm text-muted">{currentDimension.name}</p>
+            <p className="mt-0.5 text-xs sm:text-sm text-muted">{currentDimension.name}</p>
           )}
         </div>
-        <span className="text-sm text-muted">
-          {step + 1} / {assessment.questions.length}
+        <span className="text-xs sm:text-sm font-medium text-muted">
+          Question {step + 1} of {assessment.questions.length}
         </span>
       </div>
 
@@ -102,22 +135,22 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
         <ProgressSteps current={step} total={assessment.questions.length} />
       </div>
 
-      <div className="mt-8 rounded-3xl border border-border bg-white p-8 shadow-sm">
+      <div key={step} className="mt-6 rounded-3xl border border-border bg-white p-5 shadow-sm sm:mt-8 sm:p-8 transition-all animate-in fade-in-50 duration-200">
         {error && (
           <div className="mb-4">
             <Alert variant="error">{error}</Alert>
           </div>
         )}
 
-        <h2 className="text-center font-display text-xl font-semibold text-ink sm:text-2xl">
+        <h2 className="text-center font-display text-lg font-semibold text-ink sm:text-2xl sm:leading-snug">
           {question.prompt}
         </h2>
-        <p className="mx-auto mt-3 max-w-md text-center text-sm text-muted">
+        <p className="mx-auto mt-2 max-w-md text-center text-xs sm:text-sm text-muted">
           There are no right or wrong answers. Choose the option that best reflects your
           experience.
         </p>
 
-        <div className="mt-8 space-y-2">
+        <div className="mt-6 space-y-2.5 sm:mt-8 sm:space-y-3">
           {([1, 2, 3, 4, 5] as const).map((value) => (
             <RadioCard
               key={value}
@@ -128,11 +161,11 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
           ))}
         </div>
 
-        <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
+        <div className="mt-6 flex flex-col-reverse gap-3 border-t border-border pt-6 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
             onClick={skip}
-            className="text-sm font-medium text-muted hover:text-ink"
+            className="w-full sm:w-auto text-center text-xs sm:text-sm font-medium text-muted hover:text-ink py-2"
             disabled={isPending}
           >
             Skip question
@@ -141,6 +174,7 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
             onClick={goNext}
             isLoading={isPending}
             disabled={selectedValue === undefined && !isPending}
+            className="w-full sm:w-auto justify-center"
           >
             {isLast ? "Complete Assessment" : "Continue"} →
           </Button>
@@ -149,6 +183,3 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
     </div>
   );
 }
-
-// Note: Add 'use' import at top
-import React from "react";

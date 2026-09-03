@@ -24,21 +24,26 @@ export async function registerAction(
     return { error: "Password must be at least 8 characters." };
   }
 
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: fullName },
-    },
-  });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+      },
+    });
 
-  if (error) {
-    if (error.message.toLowerCase().includes("already registered")) {
-      return { error: "An account with this email already exists. Try logging in instead." };
+    if (error) {
+      if (error.message.toLowerCase().includes("already registered")) {
+        return { error: "An account with this email already exists. Try logging in instead." };
+      }
+      return { error: error.message };
     }
-    return { error: error.message };
+  } catch (err: any) {
+    console.error("registerAction error:", err);
+    return { error: "Network error: Unable to connect to authentication server. Please try again." };
   }
 
   redirect("/dashboard");
@@ -56,11 +61,16 @@ export async function loginAction(
     return { error: "Please enter your email and password." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) {
-    return { error: "Invalid email or password." };
+    if (error) {
+      return { error: "Invalid email or password." };
+    }
+  } catch (err: any) {
+    console.error("loginAction error:", err);
+    return { error: "Network error: Unable to connect to authentication server. Please try again." };
   }
 
   redirect(redirectTo || "/dashboard");

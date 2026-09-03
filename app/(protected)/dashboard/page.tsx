@@ -28,102 +28,108 @@ export default async function DashboardPage() {
     supabase.from("profiles").select("full_name").eq("id", user?.id).single(),
     supabase
       .from("assessments")
-      .select("id, score, category, breakdown, completed_at")
+      .select("id, score, category, breakdown, completed_at, overall_score, assessment_name, created_at")
       .eq("user_id", user?.id)
-      .order("completed_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(1),
   ]);
 
   const latest = assessments?.[0];
   const firstName = profile?.full_name?.split(" ")[0];
 
-  const breakdownEntries = latest
+  const overallScore = latest?.overall_score ?? latest?.score ?? 0;
+  const categoryTone = latest?.category ? CATEGORY_TONE[latest.category] ?? "sage" : "sage";
+  const rawDate = latest?.created_at || latest?.completed_at || new Date().toISOString();
+
+  const breakdownEntries = latest?.breakdown
     ? (Object.entries(latest.breakdown as Record<string, number>) as [Category, number][])
     : [];
-  const recommendations = latest
+  const recommendations = breakdownEntries.length > 0
     ? getRecommendations(breakdownEntries.map(([category, score]) => ({ category, score })))
     : [];
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6 sm:gap-8">
       <div>
-        <h1 className="font-display text-3xl font-semibold text-ink">
+        <h1 className="font-display text-2xl font-semibold text-ink sm:text-3xl">
           {greeting()}
           {firstName ? `, ${firstName}` : ""}.
         </h1>
-        <p className="mt-2 max-w-xl text-slate-600">
+        <p className="mt-1.5 max-w-xl text-sm sm:text-base text-slate-600">
           Take a moment for yourself today. Here&apos;s a snapshot of your well-being journey and
           some gentle recommendations.
         </p>
       </div>
 
       {!latest ? (
-        <div className="flex flex-col items-start gap-4 rounded-3xl border border-dashed border-primary/30 bg-primary-light/40 p-8">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl">
+        <div className="flex flex-col items-start gap-4 rounded-3xl border border-dashed border-primary/30 bg-primary-light/40 p-6 sm:p-8">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-xs">
             🌱
           </span>
           <div>
-            <h2 className="font-display text-xl font-semibold text-ink">
+            <h2 className="font-display text-lg font-semibold text-ink sm:text-xl">
               Take a psychological assessment
             </h2>
-            <p className="mt-1 max-w-md text-sm text-slate-600">
+            <p className="mt-1 max-w-md text-xs sm:text-sm text-slate-600 leading-relaxed">
               Explore your emotions, stress management, and well-being through our carefully designed assessments. 
               Each takes just a few minutes and provides personalized insights.
             </p>
           </div>
           <Link
             href="/assessments"
-            className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
+            className="w-full sm:w-auto text-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white shadow-xs hover:bg-primary-dark transition-colors"
           >
             Explore assessments →
           </Link>
         </div>
       ) : (
-        <div className="rounded-3xl border border-border bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="rounded-3xl border border-border bg-white p-5 shadow-sm sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <Badge tone={CATEGORY_TONE[latest.category] ?? "sage"}>
+              <Badge tone={categoryTone}>
                 Latest check-in ·{" "}
-                {new Date(latest.completed_at).toLocaleDateString(undefined, {
+                {new Date(rawDate).toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",
                 })}
               </Badge>
-              <h2 className="mt-3 font-display text-2xl font-semibold text-ink">
-                Overall well-being: {latest.score}/100
+              <h2 className="mt-2.5 font-display text-xl font-semibold text-ink sm:text-2xl">
+                {latest.assessment_name ? latest.assessment_name : "Overall well-being"}: {overallScore}/100
               </h2>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
               <Link
                 href={`/results/${latest.id}`}
-                className="rounded-full border border-primary/30 px-5 py-2.5 text-sm font-medium text-primary hover:bg-primary-light"
+                className="w-full sm:w-auto text-center rounded-full border border-primary/30 px-5 py-2.5 text-sm font-medium text-primary hover:bg-primary-light transition-colors"
               >
                 View full results
               </Link>
               <Link
                 href="/assessments"
-                className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
+                className="w-full sm:w-auto text-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark transition-colors"
               >
                 New assessment
               </Link>
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
-            {breakdownEntries.map(([category, score]) => (
-              <div key={category} className="rounded-2xl bg-cream px-3 py-3 text-center">
-                <p className="font-display text-lg font-semibold text-ink">{score}</p>
-                <p className="text-xs text-muted">{CATEGORY_LABELS[category]}</p>
-              </div>
-            ))}
-          </div>
+          {breakdownEntries.length > 0 && (
+            <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-6">
+              {breakdownEntries.map(([category, score]) => (
+                <div key={category} className="rounded-2xl bg-cream px-3 py-3 text-center">
+                  <p className="font-display text-base font-semibold text-ink sm:text-lg">{score}</p>
+                  <p className="text-xs text-muted truncate">{CATEGORY_LABELS[category] || category}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {recommendations.length > 0 && (
         <section>
-          <h2 className="font-display text-xl font-semibold text-ink">Recommended for you</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="font-display text-lg font-semibold text-ink sm:text-xl">Recommended for you</h2>
+          <div className="mt-3 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3 sm:mt-4">
             {recommendations.map((rec) => (
               <Link
                 key={rec.title}
@@ -140,23 +146,23 @@ export default async function DashboardPage() {
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold text-ink">Explore resources</h2>
-          <Link href="/resources" className="text-sm font-medium text-primary hover:underline">
+          <h2 className="font-display text-lg font-semibold text-ink sm:text-xl">Explore resources</h2>
+          <Link href="/resources" className="text-xs sm:text-sm font-medium text-primary hover:underline">
             View all
           </Link>
         </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3 sm:mt-4">
           {RESOURCES.slice(0, 3).map((resource) => (
             <div
               key={resource.slug}
               className="flex flex-col gap-2 rounded-2xl border border-border bg-white p-5 shadow-sm"
             >
-              <span className="text-xs font-medium uppercase tracking-wide text-sage-dark">
+              <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-sage-dark">
                 {resource.type}
               </span>
               <h3 className="font-display text-sm font-semibold text-ink">{resource.title}</h3>
-              <p className="text-sm text-slate-600">{resource.description}</p>
-              <span className="mt-auto text-xs text-muted">{resource.duration}</span>
+              <p className="text-xs sm:text-sm text-slate-600">{resource.description}</p>
+              <span className="mt-auto pt-2 text-xs text-muted">{resource.duration}</span>
             </div>
           ))}
         </div>
@@ -164,13 +170,13 @@ export default async function DashboardPage() {
 
       <Link
         href="/support"
-        className="flex items-center justify-between rounded-2xl border border-border bg-white px-6 py-4 shadow-sm hover:border-primary/40"
+        className="flex items-center justify-between rounded-2xl border border-border bg-white p-5 shadow-sm hover:border-primary/40 sm:px-6 sm:py-4 transition-colors"
       >
         <div>
           <p className="font-display text-sm font-semibold text-ink">Need to talk to someone?</p>
-          <p className="text-sm text-muted">Find crisis resources and professional support.</p>
+          <p className="text-xs sm:text-sm text-muted">Find crisis resources and professional support.</p>
         </div>
-        <span className="text-primary">→</span>
+        <span className="text-primary text-lg">→</span>
       </Link>
     </div>
   );

@@ -23,7 +23,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
       <TopNav isAuthed />
       <div className="mx-auto flex max-w-7xl">
         <Sidebar fullName={fullName} />
-        <main className="min-w-0 flex-1 px-6 py-10 sm:px-10">{children}</main>
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10">{children}</main>
       </div>
     </div>
   );

@@ -23,50 +23,58 @@ export default async function HistoryPage() {
 
   const { data: assessments } = await supabase
     .from("assessments")
-    .select("id, score, category, completed_at")
+    .select("id, score, category, completed_at, overall_score, assessment_name, created_at")
     .eq("user_id", user?.id)
-    .order("completed_at", { ascending: false });
+    .order("created_at", { ascending: false });
 
-  const list = assessments ?? [];
+  const rawList = assessments ?? [];
+  const list = rawList.map((a) => ({
+    id: a.id,
+    score: a.overall_score ?? a.score ?? 0,
+    category: a.category || "steady",
+    date: a.created_at || a.completed_at || new Date().toISOString(),
+    name: a.assessment_name || "Assessment",
+  }));
+
   const chronological = [...list].reverse();
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="font-display text-3xl font-semibold text-ink">Your history</h1>
-      <p className="mt-2 text-slate-600">
+    <div className="mx-auto max-w-3xl px-4 py-2 sm:px-6 sm:py-6">
+      <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Your history</h1>
+      <p className="mt-1.5 text-xs sm:text-sm text-slate-600">
         Track how your well-being indicator has changed over time.
       </p>
 
       {list.length === 0 ? (
-        <div className="mt-8 flex flex-col items-start gap-4 rounded-3xl border border-dashed border-primary/30 bg-primary-light/40 p-8">
-          <p className="text-sm text-slate-700">
+        <div className="mt-6 flex flex-col items-start gap-4 rounded-3xl border border-dashed border-primary/30 bg-primary-light/40 p-6 sm:mt-8 sm:p-8">
+          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
             You haven&apos;t completed a check-in yet. Once you do, your progress will show up
             here.
           </p>
           <Link
-            href="/assessment"
-            className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
+            href="/assessments"
+            className="w-full sm:w-auto text-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white shadow-xs hover:bg-primary-dark transition-colors"
           >
-            Start check-in →
+            Start assessment →
           </Link>
         </div>
       ) : (
         <>
           {chronological.length > 1 && (
-            <div className="mt-8 rounded-3xl border border-border bg-white p-6 shadow-sm">
+            <div className="mt-6 rounded-3xl border border-border bg-white p-5 shadow-sm sm:mt-8 sm:p-6">
               <p className="font-display text-sm font-semibold text-ink">
                 Overall well-being over time
               </p>
-              <div className="mt-6 flex h-32 items-end gap-2">
+              <div className="mt-4 flex h-32 sm:h-36 items-end gap-1.5 overflow-x-auto pb-2">
                 {chronological.map((a) => (
-                  <div key={a.id} className="flex flex-1 flex-col items-center gap-2">
+                  <div key={a.id} className="flex min-w-[32px] flex-1 flex-col items-center gap-1.5">
                     <div
-                      className="w-full rounded-t-lg bg-sage-dark/80"
-                      style={{ height: `${Math.max(6, a.score)}%` }}
-                      title={`${a.score}/100`}
+                      className="w-full rounded-t-lg bg-sage-dark/80 transition-all hover:bg-sage-dark"
+                      style={{ height: `${Math.max(8, a.score)}%` }}
+                      title={`${a.name}: ${a.score}/100`}
                     />
-                    <span className="text-[10px] text-muted">
-                      {new Date(a.completed_at).toLocaleDateString(undefined, {
+                    <span className="text-[9px] sm:text-[10px] text-muted whitespace-nowrap">
+                      {new Date(a.date).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
                       })}
@@ -77,29 +85,35 @@ export default async function HistoryPage() {
             </div>
           )}
 
-          <div className="mt-6 flex flex-col divide-y divide-border rounded-3xl border border-border bg-white shadow-sm">
+          <div className="mt-6 flex flex-col divide-y divide-border rounded-3xl border border-border bg-white shadow-sm overflow-hidden">
             {list.map((a) => (
               <Link
                 key={a.id}
                 href={`/results/${a.id}`}
-                className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-cream"
+                className="flex items-center justify-between gap-3 px-5 py-4 hover:bg-cream transition-colors sm:px-6"
               >
-                <div>
-                  <p className="font-display text-sm font-semibold text-ink">
-                    {new Date(a.completed_at).toLocaleDateString(undefined, {
-                      month: "long",
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-sm font-semibold text-ink truncate">
+                    {a.name}
+                  </p>
+                  <p className="text-xs text-muted mt-0.5">
+                    {new Date(a.date).toLocaleDateString(undefined, {
+                      month: "short",
                       day: "numeric",
                       year: "numeric",
                     })}
                   </p>
-                  <p className="text-xs text-muted">{categoryStatusLabel(a.score)} overall</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge tone={CATEGORY_TONE[a.category] ?? "sage"}>
-                    {CATEGORY_TEXT[a.category] ?? a.category}
-                  </Badge>
-                  <span className="font-display text-lg font-semibold text-ink">{a.score}</span>
-                  <span className="text-primary">→</span>
+                <div className="flex items-center gap-2.5 sm:gap-4">
+                  {a.category && (
+                    <div className="hidden sm:block">
+                      <Badge tone={CATEGORY_TONE[a.category] ?? "sage"}>
+                        {CATEGORY_TEXT[a.category] ?? a.category}
+                      </Badge>
+                    </div>
+                  )}
+                  <span className="font-display text-base font-bold text-ink sm:text-lg">{a.score}%</span>
+                  <span className="text-primary text-sm sm:text-base">→</span>
                 </div>
               </Link>
             ))}

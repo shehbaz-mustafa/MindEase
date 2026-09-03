@@ -16,7 +16,7 @@ export function Sidebar({ fullName }: { fullName?: string | null }) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full w-64 flex-none flex-col border-r border-border bg-white px-4 py-6">
+    <aside className="hidden md:flex h-full w-64 flex-none flex-col border-r border-border bg-white px-4 py-6">
       <Link href="/dashboard" className="px-2 font-display text-xl font-semibold text-primary">
         MindEase
       </Link>
