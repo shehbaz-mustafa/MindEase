@@ -41,7 +41,7 @@ export async function registerAction(
       }
       return { error: error.message };
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("registerAction error:", err);
     return { error: "Network error: Unable to connect to authentication server. Please try again." };
   }
@@ -68,7 +68,7 @@ export async function loginAction(
     if (error) {
       return { error: "Invalid email or password." };
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("loginAction error:", err);
     return { error: "Network error: Unable to connect to authentication server. Please try again." };
   }

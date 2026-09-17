@@ -9,7 +9,6 @@ import {
   DimensionResult,
   Responses,
   getScoreLevel,
-  LIKERT_LABELS,
 } from "./types";
 
 /**
@@ -62,8 +61,7 @@ function rawScoreToPercentage(rawScore: number): number {
  */
 function getInterpretation(
   dimensionName: string,
-  level: DimensionResult["level"],
-  isNegativeDimension: boolean
+  level: DimensionResult["level"]
 ): string {
   // Determine if this is a "problem" dimension (like "Lack of Clarity") or a "positive" one (like "Self-Kindness")
   const negativeDimensions = [
@@ -127,20 +125,7 @@ export function scoreAssessment(
     const percentage = rawScoreToPercentage(rawScore);
     const level = getScoreLevel(percentage);
 
-    // Determine if this is a negative dimension (problem-oriented)
-    const negativeDimensions = [
-      "Lack of",
-      "Difficulties",
-      "Impulse",
-      "Limited",
-      "Non-Acceptance",
-      "Difficulty",
-      "Avoidance",
-      "Self-Criticism",
-    ];
-    const isNegative = negativeDimensions.some((term) => dimension.name.includes(term));
-
-    const interpretation = getInterpretation(dimension.name, level, isNegative);
+    const interpretation = getInterpretation(dimension.name, level);
 
     dimensionResults.push({
       dimensionId: dimension.id,

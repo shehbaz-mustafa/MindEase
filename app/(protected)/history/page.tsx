@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/Badge";
-import { categoryStatusLabel } from "@/lib/assessment/scoring";
 
 const CATEGORY_TONE: Record<string, "sage" | "primary" | "danger"> = {
   thriving: "sage",

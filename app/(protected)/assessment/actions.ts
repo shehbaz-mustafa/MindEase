@@ -14,14 +14,6 @@ function scoreToCategory(score: number): "thriving" | "steady" | "needs_support"
   return "needs_support";
 }
 
-function isSchemaMismatchError(error: { code?: string; message?: string } | null): boolean {
-  if (!error) return false;
-  return (
-    error.code === "42703" ||
-    /does not exist|column .* not found|undefined column/i.test(error.message ?? "")
-  );
-}
-
 export async function submitAssessmentAction(
   assessmentId: string,
   assessment: Assessment,
@@ -117,13 +109,16 @@ export async function submitAssessmentAction(
         fullRes.error?.message ||
         "We couldn't save your assessment. Please try again.",
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Assessment submit network exception:", err);
+    const message = err instanceof Error ? err.message : "";
+    const isNetworkError = err instanceof TypeError || message.includes("fetch");
+
     return {
       error:
-        err?.message?.includes("fetch") || err?.name === "TypeError"
+        isNetworkError
           ? "Network connection error: Unable to reach the server. Please check your connection and try again."
-          : err?.message ?? "An unexpected error occurred while saving your assessment.",
+          : message || "An unexpected error occurred while saving your assessment.",
     };
   }
 }
