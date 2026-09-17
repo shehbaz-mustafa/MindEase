@@ -35,7 +35,7 @@ export default async function ProfilePage() {
       <form action={logoutAction} className="mt-6">
         <button
           type="submit"
-          className="rounded-full border border-border px-6 py-2.5 text-sm font-medium text-muted hover:border-danger-accent/40 hover:text-danger-text"
+          className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-muted hover:border-danger-accent/40 hover:text-danger-text"
         >
           Log out
         </button>

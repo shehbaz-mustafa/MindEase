@@ -18,7 +18,7 @@ export function ResourceExplorer() {
         <button
           type="button"
           onClick={() => setActiveTag("all")}
-          className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+          className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
             activeTag === "all" ? "bg-primary text-white" : "bg-cream text-muted hover:bg-cream-deep"
           }`}
         >
@@ -29,7 +29,7 @@ export function ResourceExplorer() {
             key={tag.value}
             type="button"
             onClick={() => setActiveTag(tag.value)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
               activeTag === tag.value
                 ? "bg-primary text-white"
                 : "bg-cream text-muted hover:bg-cream-deep"
@@ -55,7 +55,7 @@ export function ResourceExplorer() {
           </div>
         ))}
         {filtered.length === 0 && (
-          <p className="text-sm text-muted">No resources for this tag yet — check back soon.</p>
+          <p className="text-sm text-muted">No resources for this tag yet. Check back soon.</p>
         )}
       </div>
     </div>

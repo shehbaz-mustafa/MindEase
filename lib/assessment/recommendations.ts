@@ -43,10 +43,13 @@ const RECOMMENDATIONS: Record<Category, Recommendation> = {
 };
 
 export function getRecommendations(
-  categoryScores: { category: Category; score: number }[]
+  categoryScores: { category: string; score: number }[]
 ): Recommendation[] {
   return categoryScores
     .filter((c) => c.score < RECOMMENDATION_THRESHOLD)
     .sort((a, b) => a.score - b.score)
-    .map((c) => RECOMMENDATIONS[c.category]);
+    .flatMap((c) => {
+      const recommendation = RECOMMENDATIONS[c.category as Category];
+      return recommendation ? [recommendation] : [];
+    });
 }

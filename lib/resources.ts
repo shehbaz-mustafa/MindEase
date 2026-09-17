@@ -46,7 +46,7 @@ export const RESOURCES: Resource[] = [
   {
     slug: "5-minute-box-breathing",
     title: "5-Minute Box Breathing",
-    description: "A quick reset you can do anywhere — in the library, before class, or in bed.",
+    description: "A quick reset you can do anywhere: in the library, before class, or in bed.",
     type: "Exercise",
     duration: "5 mins",
     tags: ["stress", "anxiety"],

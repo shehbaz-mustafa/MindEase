@@ -1,4 +1,5 @@
 import { TopNav } from "@/components/layout/TopNav";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function SupportPage() {
@@ -23,11 +24,11 @@ export default async function SupportPage() {
             <h2 className="font-display text-lg font-semibold text-ink">
               When might it help to talk to someone?
             </h2>
-            <ul className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
-              <li>• Stress, sadness, or worry are affecting your sleep, appetite, or classes</li>
-              <li>• You&apos;ve felt persistently low, anxious, or overwhelmed for weeks</li>
-              <li>• You&apos;re relying on unhealthy habits to cope</li>
-              <li>• You just want a space to talk things through with someone trained to listen</li>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600 marker:text-sage-dark">
+              <li>Stress, sadness, or worry are affecting your sleep, appetite, or classes</li>
+              <li>You&apos;ve felt persistently low, anxious, or overwhelmed for weeks</li>
+              <li>You&apos;re relying on unhealthy habits to cope</li>
+              <li>You just want a space to talk things through with someone trained to listen</li>
             </ul>
           </section>
 
@@ -38,7 +39,7 @@ export default async function SupportPage() {
             <p className="mt-3 text-sm text-slate-600">
               A counsellor provides a confidential, judgment-free space to work through stress,
               relationships, identity, grief, or anything else on your mind. Many campuses offer
-              free or low-cost sessions to enrolled students — you don&apos;t need a crisis to
+              free or low-cost sessions to enrolled students. You don&apos;t need a crisis to
               make an appointment.
             </p>
           </section>
@@ -48,7 +49,7 @@ export default async function SupportPage() {
               Contacting your campus counselling service
             </h2>
             <p className="mt-3 text-sm text-slate-600">
-              Most universities have a counselling or student wellness center — usually reachable
+              Most universities have a counselling or student wellness center, usually reachable
               through your student health portal, campus directory, or student services office.
               Look for &quot;Counselling Services,&quot; &quot;Student Wellness,&quot; or
               &quot;CAPS&quot; (Counseling and Psychological Services) on your school&apos;s
@@ -59,9 +60,7 @@ export default async function SupportPage() {
 
         <aside className="flex flex-col gap-4">
           <div className="rounded-3xl border border-danger-accent/30 bg-danger-bg p-6">
-            <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-danger-text">
-              ⚠️ Need immediate help?
-            </h2>
+            <h2 className="font-display text-lg font-semibold text-danger-text">Need immediate help?</h2>
             <p className="mt-2 text-sm text-danger-text">
               If you are in immediate danger or experiencing a crisis, please reach out now.
             </p>
@@ -90,6 +89,7 @@ export default async function SupportPage() {
           </div>
         </aside>
       </main>
+      <SiteFooter />
     </div>
   );
 }

@@ -119,14 +119,14 @@ export function describeOverallScore(overallScore: number): {
       categoryLabel: "steady",
       headline: "You're doing okay",
       summary:
-        "Your overall balance looks stable, though a few areas could use some attention. Remember, this snapshot is just a guide — be kind to yourself and lean into your coping strategies when things feel heavy.",
+        "Your overall balance looks stable, though a few areas could use some attention. Remember, this snapshot is just a guide. Be kind to yourself and lean into your coping strategies when things feel heavy.",
     };
   }
   return {
     categoryLabel: "needs_support",
     headline: "It might help to reach out",
     summary:
-      "Your responses suggest you've been carrying a lot lately. This isn't a diagnosis — but it may be a good time to talk to someone. Consider connecting with a counsellor or trusted person for support.",
+        "Your responses suggest you've been carrying a lot lately. This is not a diagnosis, but it may be a good time to talk to someone. Consider connecting with a counsellor or trusted person for support.",
   };
 }
 

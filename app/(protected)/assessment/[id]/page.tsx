@@ -135,7 +135,7 @@ export default function DynamicAssessmentPage({ params }: AssessmentPageProps) {
         <ProgressSteps current={step} total={assessment.questions.length} />
       </div>
 
-      <div key={step} className="mt-6 rounded-3xl border border-border bg-white p-5 shadow-sm sm:mt-8 sm:p-8 transition-all animate-in fade-in-50 duration-200">
+      <div key={step} className="mt-6 rounded-3xl border border-border bg-white p-5 shadow-sm sm:mt-8 sm:p-8">
         {error && (
           <div className="mb-4">
             <Alert variant="error">{error}</Alert>

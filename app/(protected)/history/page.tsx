@@ -52,7 +52,7 @@ export default async function HistoryPage() {
           </p>
           <Link
             href="/assessments"
-            className="w-full sm:w-auto text-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white shadow-xs hover:bg-primary-dark transition-colors"
+            className="w-full rounded-lg bg-primary px-6 py-2.5 text-center text-sm font-medium text-white shadow-xs transition-colors hover:bg-primary-dark sm:w-auto"
           >
             Start assessment →
           </Link>

@@ -14,9 +14,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MindEase — Your sanctuary for mental well-being",
+  title: "MindEase | Student self-reflection tools",
   description:
-    "A calm, supportive space for students to track well-being, take assessments, and find support.",
+    "Self-reflection assessments and support resources for students.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

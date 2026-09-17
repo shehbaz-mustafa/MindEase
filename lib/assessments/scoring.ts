@@ -235,7 +235,7 @@ function generateRecommendations(assessmentId: string, dimensionResults: Dimensi
     "self-compassion": [
       "Practice speaking to yourself as you would to a good friend who's struggling.",
       "Challenge self-critical thoughts by asking if they're truly fair and accurate.",
-      "Recognize that all people struggle and make mistakes—you're not alone.",
+      "Recognize that all people struggle and make mistakes. You are not alone.",
       "Try loving-kindness meditation to cultivate compassion for yourself and others.",
       "Notice when you're being self-critical and consciously shift to a more understanding approach.",
     ],

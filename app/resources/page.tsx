@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { TopNav } from "@/components/layout/TopNav";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ResourceExplorer } from "@/components/resources/ResourceExplorer";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,6 +26,7 @@ export default async function ResourcesPage() {
           </Suspense>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

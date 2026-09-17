@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/Badge";
-import { CATEGORY_LABELS, type Category } from "@/lib/assessment/scoring";
+import { CATEGORY_LABELS } from "@/lib/assessment/scoring";
 import { getRecommendations } from "@/lib/assessment/recommendations";
 import { RESOURCES } from "@/lib/resources";
 
@@ -42,7 +42,9 @@ export default async function DashboardPage() {
   const rawDate = latest?.created_at || latest?.completed_at || new Date().toISOString();
 
   const breakdownEntries = latest?.breakdown
-    ? (Object.entries(latest.breakdown as Record<string, number>) as [Category, number][])
+    ? Object.entries(latest.breakdown as Record<string, unknown>).filter(
+        (entry): entry is [string, number] => typeof entry[1] === "number"
+      )
     : [];
   const recommendations = breakdownEntries.length > 0
     ? getRecommendations(breakdownEntries.map(([category, score]) => ({ category, score })))
@@ -63,9 +65,7 @@ export default async function DashboardPage() {
 
       {!latest ? (
         <div className="flex flex-col items-start gap-4 rounded-3xl border border-dashed border-primary/30 bg-primary-light/40 p-6 sm:p-8">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-xs">
-            🌱
-          </span>
+          <span aria-hidden="true" className="h-1 w-12 bg-sage-dark" />
           <div>
             <h2 className="font-display text-lg font-semibold text-ink sm:text-xl">
               Take a psychological assessment
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
           </div>
           <Link
             href="/assessments"
-            className="w-full sm:w-auto text-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white shadow-xs hover:bg-primary-dark transition-colors"
+            className="w-full rounded-lg bg-primary px-6 py-2.5 text-center text-sm font-medium text-white shadow-xs transition-colors hover:bg-primary-dark sm:w-auto"
           >
             Explore assessments →
           </Link>
@@ -100,13 +100,13 @@ export default async function DashboardPage() {
             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
               <Link
                 href={`/results/${latest.id}`}
-                className="w-full sm:w-auto text-center rounded-full border border-primary/30 px-5 py-2.5 text-sm font-medium text-primary hover:bg-primary-light transition-colors"
+                className="w-full rounded-lg border border-primary/30 px-5 py-2.5 text-center text-sm font-medium text-primary transition-colors hover:bg-primary-light sm:w-auto"
               >
                 View full results
               </Link>
               <Link
                 href="/assessments"
-                className="w-full sm:w-auto text-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark transition-colors"
+                className="w-full rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-primary-dark sm:w-auto"
               >
                 New assessment
               </Link>
@@ -118,7 +118,9 @@ export default async function DashboardPage() {
               {breakdownEntries.map(([category, score]) => (
                 <div key={category} className="rounded-2xl bg-cream px-3 py-3 text-center">
                   <p className="font-display text-base font-semibold text-ink sm:text-lg">{score}</p>
-                  <p className="text-xs text-muted truncate">{CATEGORY_LABELS[category] || category}</p>
+                  <p className="text-xs text-muted truncate">
+                    {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] || category}
+                  </p>
                 </div>
               ))}
             </div>
