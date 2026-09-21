@@ -35,7 +35,7 @@ export function ForgotPasswordForm() {
       </p>
 
       <IconField
-        label="University email"
+        label="Email"
         icon={<MailIcon />}
         name="email"
         type="email"

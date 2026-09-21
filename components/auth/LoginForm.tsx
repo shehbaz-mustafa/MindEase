@@ -20,7 +20,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
       <input type="hidden" name="redirectTo" value={redirectTo ?? "/dashboard"} />
 
       <IconField
-        label="University email"
+        label="email"
         icon={<MailIcon />}
         name="email"
         type="email"

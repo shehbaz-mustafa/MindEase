@@ -45,7 +45,7 @@ export function RegisterForm() {
         onChange={(e) => setFields((f) => ({ ...f, fullName: e.target.value }))}
       />
       <IconField
-        label="University email"
+        label="Email"
         icon={<MailIcon />}
         name="email"
         type="email"
